@@ -35,9 +35,177 @@ auto eth2
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 
 # Шаг 6. Между офисами HQ и BR необходимо сконфигурировать ip туннель
+#### HQ-RTR:
+Добавляем туннель
+
+**mcedit /etc/network/interfaces**
+
+```
+auto gre1
+	iface gre1 inet tunnel
+	address 10.10.10.1
+	netmask 255.255.255.252
+	mode gre
+	local 172.16.4.2
+	endpoint 172.16.5.2
+	ttl 255
+```
+Применяем
+
+**systemctl restart networking**
+
+#### BR-RTR:
+Добавляем туннель
+
+**mcedit /etc/network/interfaces**
+```
+auto gre1
+	auto iface gre1 inet tunnel
+	address 10.10.10.2 # вот тут разница
+	netmask 255.255.255.252
+	mode gre
+	local 172.16.5.2 # вот тут разница
+	endpoint 172.16.4.2 # вот тут разница
+	ttl 255	
+```
+Применяем
+
+**systemctl restart networking**
+
 
 # Шаг 7. Обеспечьте динамическую маршрутизацию: ресурсы одного офиса должны быть доступны из другого офиса. Для обеспечения динамической маршрутизации используйте link state протокол на ваше усмотрение. 
+#### HQ-RTR:
+Добавляем репозиторий debian'a и комментируем верхний репозиторий
+**nano /etc/apt/sources.list**
+```
+# deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
+deb [trusted=yes] http://deb.debian.org/debian buster main
+```
+Не забываем про resolv.conf
 
+**nano /etc/resolv.conf**
+```
+nameserver 8.8.8.8
+```
+Устанавливаем frr и настраиваем
+
+**apt update && apt install frr**
+
+**systemctl restart frr**
+
+**nano /etc/frr/daemons**
+```
+ospfd=yes
+```
+Далее в консоли:
+```
+systemctl restart frr
+
+vtysh (зайти в режим настройки)
+
+conf t
+
+router ospf
+
+network 10.10.10.0/30 area 0
+
+network 192.168.1.0/26 area 0
+
+network 192.168.2.0/28 area 0
+
+network 192.168.3.0/29 area 0
+
+do wr mem
+
+exit
+
+vtysh
+
+conf t
+
+int gre1
+
+ip ospf authentication message-digest
+
+ip ospf message-digest-key 1 md5 P@ssw0rd
+
+do wr mem
+```
+
+Комментируем репозиторий debian'a и возвращаем верхний репозиторий
+
+**nano /etc/apt/sources.list**
+```
+deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
+# deb [trusted=yes] http://deb.debian.org/debian buster main
+```
+#### BR-RTR:
+
+**nano /etc/apt/sources.list**
+```
+#Верхний репозиторий
+deb [trusted=yes] http://deb.debian.org/debian buster main
+```
+Не забываем про resolv.conf
+
+**nano /etc/resolv.conf**
+```
+nameserver 8.8.8.8
+```
+**apt update && apt install frr**
+
+**systemctl restart frr**
+
+**nano /etc/frr/daemons**
+```
+ospfd=yes
+```
+Далее в консоли пишем:
+```
+systemctl restart frr
+
+vtysh
+
+conf t
+
+router ospf
+
+network 10.10.10.0/30 area 0
+
+network 192.168.4.0/27 area 0
+
+do wr mem
+
+exit
+
+vtysh
+
+*conf t
+
+int gre1
+
+ip ospf authentication message-digest
+
+ip ospf message-digest-key 1 md5 P@ssw0rd
+
+do wr mem
+```
+Комментируем репозиторий debian'a и возвращаем верхний репозиторий
+
+**nano /etc/apt/sources.list**
+```
+deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
+# deb [trusted=yes] http://deb.debian.org/debian buster main
+```
+
+Проверить туннель:
+```
+traceroute 192.168.4.2
+```
+ИНОГДА НУЖНО ЧУТЬ ПОДОЖДАТЬ, ПОКА ПОЯВИТСЯ СОСЕД, ПОЭТОМУ ПИНГ И ТРАССИРОВКА МОГУТ СРАЗУ НЕ ПОЙТИ, ПРОВЕРЯЙТЕ СОСЕДЕЙ ЧЕРЕЗ VTYSH С ПОМОЩЬЮ КОМАНДЫ:
+```
+do show ip ospf neighbor
+```
 # Шаг 8. Настройка динамической трансляции адресов
 
 # Шаг 9. Настройка протокола динамической конфигурации хостов
