@@ -155,22 +155,37 @@ nameserver 8.8.8.8
 ospfd=yes
 ```
 **systemctl restart frr**
+
 **vtysh** (зайти в режим настройки)
+
 **conf t**
+
 **router ospf**
+
 **network 10.10.10.0/30 area 0**
+
 **network 192.168.1.0/26 area 0**
+
 **network 192.168.2.0/28 area 0**
+
 **network 192.168.3.0/29 area 0**
+
 **do wr mem**
 
 **exit**
+
 **vtysh**
+
 **conf t**
+
 **int gre1**
+
 **ip ospf authentication message-digest**
+
 **ip ospf message-digest-key 1 md5 P@ssw0rd**
+
 **do wr mem**
+
 Вернуть репозиторий астры.
 
 **apt update**
