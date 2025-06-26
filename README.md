@@ -89,6 +89,7 @@ auto eth3
 7) nano /etc/sysctl.conf
 8) net.ipv4.ip_forward=1
 9) sysctl –p
+
 HQ-SRV:
 1) mcedit /etc/net/ifaces/ens192/options
 ```
