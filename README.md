@@ -189,7 +189,9 @@ ospfd=yes
 Вернуть репозиторий астры.
 
 **apt update**
+
 **apt install dnsmasq**
+
 **nano /etc/dnsmasq.conf**
 ```
 no-resolv
@@ -230,6 +232,7 @@ auto iface gre1 inet tunnel
 	ttl 255	
 ```
 **systemctl restart networking**
+
 **ip a**
 
 **nano /etc/sysctl.conf**
@@ -343,10 +346,15 @@ default via 192.168.4.1
 **systemctl enable --now dnsmasq**
 
 **useradd sshuser -u 1010**
+
 **passwd sshuser**
+
 **P@ssw0rd**(вводим пароль)
+
 **P@ssw0rd**
+
 **chmod 777 /etc/sudoers**
+
 **mcedit /etc/sudoers** (убрать # в строке)
 ```
 WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL
@@ -380,9 +388,13 @@ default via 192.168.1.1
 nameserver 8.8.8.8
 ```
 **apt-get update**
+
 **apt-get install dnsmasq**
+
 **systemctl enable --now dnsmasq**
-*systemctl status dnsmasq*
+
+**systemctl status dnsmasq**
+
 **vim /etc/dnsmasq.conf**
 
 ```
