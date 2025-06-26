@@ -25,6 +25,9 @@ auto eth2
 5) sysctl -p
 6) iptables -t nat -A POSTROUTING –s "Вставьте данные адреса, исходя из данных в задании файла" –o eth0 -j MASQUERADE
 7) iptables -t nat -A POSTROUTING –s "Вставьте данные адреса, исходя из данных в задании файла" –o eth0 -j MASQUERADE
+8) iptables-save > /root/rules
+9) crontab -e
+10) @reboot /sbin/iptables-restore < /root/rules
 # Шаг 3. Создание локальных учетных записей
 
 # Шаг 4. Настройте на интерфейсе HQ-RTR в сторону офиса HQ виртуальный коммутатор
