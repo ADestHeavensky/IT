@@ -50,7 +50,6 @@ WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL
 ```
 6) usermod -aG wheel sshuser
 7) id sshuser
-8) 
 HQ-RTR & BR-RTR:
 1) useradd net_admin -m
 2) passwd net_admin
