@@ -115,7 +115,7 @@ DISABLED=no
 BOOTPROTO=dhcp
 NM_CONTROLLED=no
 ```
-5)systemctl restart network
+5) systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 
 # Шаг 6. Между офисами HQ и BR необходимо сконфигурировать ip туннель
