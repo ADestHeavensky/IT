@@ -206,7 +206,7 @@ BR-RTR:
 1) mcedit /etc/network/interfaces
 ```
 auto gre1
-	auto iface gre1 inet tunnel
+	iface gre1 inet tunnel
 	address 10.10.10.2 # вот тут разница
 	netmask 255.255.255.252
 	mode gre
