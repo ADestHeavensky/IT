@@ -417,7 +417,9 @@ nameserver 192.168.1.2
 192.168.4.2 br-srv.au-team.irpo
 
 **nano /etc/dnsmasq**
+
 server=/au-team.irpo/192.168.4.2
+
 **systemctl restart dnsmasq**
 
 **samba-tool domain provision**
@@ -429,23 +431,34 @@ SAMBA_INTERNAL
 123qweR%
 
 **mv -f /var/lib/samba/private/krb5.conf /etc/krb5.conf**
+
 **systemctl enable samba**
+
 **сrontab -e**
+
 @reboot /bin/systemctl restart network
+
 @reboot /bin/systemctl restart samba
 **reboot**
+
 **samba-tool domain info 127.0.0.1**
 
+
 **Теперь создадим 5 пользователей**
+
 **samba-tool user add user1.hq 123qweR%(с user1.hq до user5.hq)**
 
 Теперь создадим группу и поместим туда созданных пользователей:
 **samba-tool group add hq**
+
 **samba-tool group addmembers hq user1.hq,user2.hq,user3.hq,user4.hq,user5.hq**
 
 **apt-repo add rpm http://altrepo.ru/local-p10 noarch local-p10**
+
 **apt-get update**
+
 **apt-get install sudo-samba-schema**
+
 **sudo-schema-apply**
 
 Нажимаем yes и вводим Administrator, пароль 123qweR%
