@@ -3,6 +3,7 @@
 ![hostname](/img/hostname.png)
 
 **Таблица масок**
+
 ![mask](/img/mask.png)
 
 **Таблица адресации (как пример)**
