@@ -1,6 +1,22 @@
 # IT
-Все: hostnamectl set-hostname ... ; exec bash
+**Все: hostnamectl set-hostname ... ; exec bash**
+![hostname](/img/hostname.png)
 
+**Таблица масок**
+![mask](/img/mask.png)
+
+**Таблица адресации (как пример)**
+![address](/img/ip-address.png)
+
+### УСТАНОВКА ЯНДЕКСА НА HQ-CLI ЭЩКЕРЕЕЕЕЕ
+```
+apt-get update
+apt-get install yandex-browser-stable
+```
+Пуск → Интернет → Yandex Browser
+
+
+## Модуль 1
 #### ISP: 
 **nano /etc/network/interfaces**
 ```
