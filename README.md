@@ -531,3 +531,38 @@ done < “$csv_file”
 **chmod +x /root/import**
 **bash /root/import**
 
+
+### 4. Сконфигурируйте ansible на сервере BR-SRV
+1. Обновить пакеты и установить ansible на br-srv
+```
+apt-get update
+apt-get install ansible
+```
+2. В /etc/ansible/hosts прописать (использовать внутренние ipшки и порты указанные при настройке ssh в 1 модуле):
+hq-srv ansible_host=sshuser@ip ansible_port=порт
+hq-cli ansible_host=sshuser@ip ansible_port=порт
+hq-rtr ansible_host=net_admin@ip ansible_port=порт
+br-rtr ansible_host=net_admin@ip ansible_port=порт
+3. В /etc/ansible/ansible.cfg добавить под строку [defaults]
+```
+ansible_python_interpreter=/usr/bin/python3
+```
+4. Настроить ssh на hq-rtr, br-rtr и hq-cli (см 1 раздел)
+5. Создать sshuser на hq-cli (см 1 раздел)
+6. Сгенерировать ключ на br-srv, на все запросы просто нажимать enter
+```
+ssh-keygen -t rsa
+```
+7. Скопировать ключи на машины
+для роутеров:
+```
+ssh-copy-id -p номер_порта net_admin@ip_роутера
+```
+для hq-srv и hq-cli:
+```
+ssh-copy-id -p номер_порта sshuser@ip
+```
+8. Проверить связь, выполнив
+```
+ansible all -m ping
+```
