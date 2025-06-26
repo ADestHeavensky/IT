@@ -64,24 +64,24 @@ domain=au-team.irpo
 server=8.8.8.8
 interface=*
 
-address=/hq-rtr.au-team.irpo/192.168.1.1
-ptr-record=1.1.168.192.in-addr.arpa,hq-rtr.au-team.irpo
+address=/hq-rtr.au-team.irpo/"вставьте нужный ip"
+ptr-record="вставьте ip, указав числа в обратном порядке".in-addr.arpa,hq-rtr.au-team.irpo
 cname=moodle.au-team.irpo,hq-rtr.au-team.irpo
 cname=wiki.au-team.irpo,hq-rtr.au-team.irpo
 
-address=/br-rtr.au-team.irpo/192.168.4.1
+address=/br-rtr.au-team.irpo/"вставьте нужный ip"
 
-address=/hq-srv.au-team.irpo/192.168.1.2
-ptr-record=2.1.168.192.in-addr.arpa,hq-srv.au-team.irpo
+address=/hq-srv.au-team.irpo/"вставьте нужный ip"
+ptr-record="вставьте ip, указав числа в обратном порядке".in-addr.arpa,hq-srv.au-team.irpo
 
-address=/hq-cli.au-team.irpo/192.168.2.2 (Смотрите адрес на HQ-CLI, т.к он выдаётся по DHCP)
-ptr-record=2.2.168.192.in-addr.arpa,hq-cli.au-team.irpo
+address=/hq-cli.au-team.irpo/"вставьте нужный ip" (Смотрите адрес на HQ-CLI, т.к он выдаётся по DHCP)
+ptr-record="вставьте ip, указав числа в обратном порядке".in-addr.arpa,hq-cli.au-team.irpo
 
-address=/br-srv.au-team.irpo/192.168.4.2
+address=/br-srv.au-team.irpo/"вставьте нужный ip"
 ```
 5. В /etc/hosts добавить
 ```
-192.168.1.1 hq-rtr.au-team.irpo
+"вставьте нужный ip" hq-rtr.au-team.irpo
 ```
 6. systemctl restart dnsmasq
 7. Пингануть гугл и какую-нибудь машину по имени на других машинах
