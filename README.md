@@ -119,7 +119,34 @@ NM_CONTROLLED=no
 ```
 5) systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
+#### HQ-SRV:
+Ставим **раздатчик**
+```
+apt-get install openssh-common
+```
+**mcedit /etc/openssh/sshd_config**
+```
+Port 2024
+MaxAuthTries 2
+AllowUsers sshuser
+PermitRootLogin no
+```
+mcedit /root/banner
+```
+Authorized access only
+#НЕ ЗАБЫВАЕМ ОСТАВИТЬ ПУСТУЮ СТРОКУ ПОСЛЕ
+```
+**mcedit /etc/openssh/sshd_config**
+Находим или добавляем:
+```
+Banner /root/banner
+```
+**systemctl enable --now sshd**
+**systemctl restart sshd**
 
+**АБОЮДНО НА BR-SRV**
+#### HQ-CLI:
+**ssh sshuser@192.168.1.2 -p 2024**
 # Шаг 6. Между офисами HQ и BR необходимо сконфигурировать ip туннель
 #### HQ-RTR:
 Добавляем туннель
