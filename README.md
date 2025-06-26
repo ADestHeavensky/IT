@@ -160,41 +160,34 @@ default via 192.168.4.1
 5) crontab -e
 6) @reboot /bin/systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
-#### HQ-SRV:
-Ставим **раздатчик**
+HQ-SRV и BR-SRV:
+1) apt-get install openssh-common
+2) mcedit /etc/openssh/sshd_config
 ```
-apt-get install openssh-common
-```
-**mcedit /etc/openssh/sshd_config**
-```
-Port 2024
-MaxAuthTries 2
+Port 2024 (Порт может отличаться, исходя из данных в файле)
+MaxAuthTries 2 (Кол-во попыток входа может отличаться, исходя из данных в файле)
 AllowUsers sshuser
 PermitRootLogin no
 ```
-mcedit /root/banner
+3) mcedit /root/banner
 ```
 Authorized access only
 #НЕ ЗАБЫВАЕМ ОСТАВИТЬ ПУСТУЮ СТРОКУ ПОСЛЕ
 ```
-**mcedit /etc/openssh/sshd_config**
+4) mcedit /etc/openssh/sshd_config
 Находим или добавляем:
 ```
 Banner /root/banner
 ```
-**systemctl enable --now sshd**
-**systemctl restart sshd**
+5) systemctl enable --now sshd
+6) systemctl restart sshd
 
-#### Проверка HQ-CLI:
-**ssh sshuser@192.168.1.2 -p 2024**
-
-**АБОЮДНО НА BR-SRV**
+Проверка HQ-CLI:
+1) ssh sshuser@192.168.1.2 -p 2024
+2) ssh sshuser@192.168.4.2 -p 2024
 # Шаг 6. Между офисами HQ и BR необходимо сконфигурировать ip туннель
-#### HQ-RTR:
-Добавляем туннель
-
-**mcedit /etc/network/interfaces**
-
+HQ-RTR:
+1) mcedit /etc/network/interfaces
 ```
 auto gre1
 	iface gre1 inet tunnel
@@ -205,14 +198,11 @@ auto gre1
 	endpoint 172.16.5.2
 	ttl 255
 ```
-Применяем
 
-**systemctl restart networking**
+2) systemctl restart networking
 
-#### BR-RTR:
-Добавляем туннель
-
-**mcedit /etc/network/interfaces**
+BR-RTR:
+1) mcedit /etc/network/interfaces
 ```
 auto gre1
 	auto iface gre1 inet tunnel
@@ -223,41 +213,29 @@ auto gre1
 	endpoint 172.16.4.2 # вот тут разница
 	ttl 255	
 ```
-Применяем
-
-**systemctl restart networking**
-
+2) systemctl restart networking
 
 # Шаг 7. Обеспечьте динамическую маршрутизацию: ресурсы одного офиса должны быть доступны из другого офиса. Для обеспечения динамической маршрутизации используйте link state протокол на ваше усмотрение. 
-#### HQ-RTR:
+HQ-RTR:
 Добавляем репозиторий debian'a и комментируем верхний репозиторий
-**nano /etc/apt/sources.list**
+1) nano /etc/apt/sources.list
 ```
 # deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
 deb [trusted=yes] http://deb.debian.org/debian buster main
 ```
-Не забываем про resolv.conf
-
-**nano /etc/resolv.conf**
+2) nano /etc/resolv.conf
 ```
 nameserver 8.8.8.8
 ```
-Устанавливаем frr и настраиваем
-
-**apt update && apt install frr**
-
-**systemctl restart frr**
-
-**nano /etc/frr/daemons**
+3) apt update && apt install frr
+4) systemctl restart frr
+5) nano /etc/frr/daemons
 ```
 ospfd=yes
 ```
-Далее в консоли:
+6) systemctl restart frr
+7) vtysh
 ```
-systemctl restart frr
-
-vtysh (зайти в режим настройки)
-
 conf t
 
 router ospf
@@ -287,40 +265,31 @@ ip ospf message-digest-key 1 md5 P@ssw0rd
 do wr mem
 ```
 
-Комментируем репозиторий debian'a и возвращаем верхний репозиторий
-
-**nano /etc/apt/sources.list**
+8) nano /etc/apt/sources.list
 ```
 deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
 # deb [trusted=yes] http://deb.debian.org/debian buster main
 ```
-#### BR-RTR:
 
-**nano /etc/apt/sources.list**
+BR-RTR:
+1) nano /etc/apt/sources.list
 ```
-#Верхний репозиторий
+#deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
 deb [trusted=yes] http://deb.debian.org/debian buster main
 ```
-Не забываем про resolv.conf
-
-**nano /etc/resolv.conf**
+2) nano /etc/resolv.conf
 ```
 nameserver 8.8.8.8
 ```
-**apt update && apt install frr**
-
-**systemctl restart frr**
-
-**nano /etc/frr/daemons**
+3) apt update && apt install frr
+4)systemctl restart frr
+5) nano /etc/frr/daemons
 ```
 ospfd=yes
 ```
-Далее в консоли пишем:
+6) systemctl restart frr
+7) vtysh
 ```
-systemctl restart frr
-
-vtysh
-
 conf t
 
 router ospf
@@ -345,35 +314,27 @@ ip ospf message-digest-key 1 md5 P@ssw0rd
 
 do wr mem
 ```
-Комментируем репозиторий debian'a и возвращаем верхний репозиторий
-
-**nano /etc/apt/sources.list**
+8) nano /etc/apt/sources.list
 ```
 deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
 # deb [trusted=yes] http://deb.debian.org/debian buster main
 ```
-
-Проверить туннель:
-```
-traceroute 192.168.4.2
-```
-ИНОГДА НУЖНО ЧУТЬ ПОДОЖДАТЬ, ПОКА ПОЯВИТСЯ СОСЕД, ПОЭТОМУ ПИНГ И ТРАССИРОВКА МОГУТ СРАЗУ НЕ ПОЙТИ, ПРОВЕРЯЙТЕ СОСЕДЕЙ ЧЕРЕЗ VTYSH С ПОМОЩЬЮ КОМАНДЫ:
-```
-do show ip ospf neighbor
-```
+9) traceroute 192.168.4.2
+10) do show ip ospf neighbor
 # Шаг 8. Настройка динамической трансляции адресов
 ШАГ СКИПАЕМ, НАСТРОЙКА БЫЛА ВЫШЕ (IPTABLES)
 
 (┬┬﹏┬┬)
 
 # Шаг 9. Настройка протокола динамической конфигурации хостов
-### HQ-RTR:
-mcedit /etc/resolv.conf
+HQ-RTR:
+1) mcedit /etc/resolv.conf
+```
 nameserver 8.8.8.8
-apt update
-apt install dnsmasq
-
-mcedit /etc/dnsmasq.conf
+```
+2) apt update
+3) apt install dnsmasq
+4) mcedit /etc/dnsmasq.conf
 ```
 no-resolv
 dhcp-range=192.168.2.2,192.168.2.14,9999h
@@ -381,69 +342,59 @@ dhcp-option=3,192.168.2.1
 dhcp-option=6,192.168.1.2
 interface=eth2 #Выбираем адаптер, у которого есть соединение с HQ-CLI
 ```
-systemctl restart dnsmasq
-systemctl status dnsmasq
+5) systemctl restart dnsmasq
+6) systemctl status dnsmasq
 
-Проверим работу службы на HQ-CLI, перезапускаем службу network на нём и посмотрим, выдался ли нам адрес:
-systemctl restart network
-ip a
-
+Проверяем на HQ-CLI: 
+1) systemctl restart network
+2) ip a
 # Шаг 10. Настройка DNS для офисов HQ и BR
-1. На hq-srv отключить несовместимую службу bind если она есть, командой
-```
-systemctl disable --now bind
-```
-2. Отредачить /etc/resolv.conf
+1) systemctl disable --now bind
+
+2) nano /etc/resolv.conf
 ```
 nameserver 8.8.8.8
 ```
-3. Установить dnsmasq
-```
-apt-get update
-apt-get install dnsmasq
-systemctl enable --now dnsmasq
-```
-4. Изменить файл /etc/dnsmasq.conf
+3) apt-get update
+4) apt-get install dnsmasq
+5) systemctl enable --now dnsmasq
+6) nano /etc/dnsmasq.conf
 ```
 no-resolv
 domain=au-team.irpo
 server=8.8.8.8
 interface=*
 
-address=/hq-rtr.au-team.irpo/"вставьте нужный ip"
-ptr-record="вставьте ip, указав числа в обратном порядке".in-addr.arpa,hq-rtr.au-team.irpo
+address=/hq-rtr.au-team.irpo/192.168.1.1
+ptr-record=1.1.168.192.in-addr.arpa,hq-rtr.au-team.irpo
 cname=moodle.au-team.irpo,hq-rtr.au-team.irpo
 cname=wiki.au-team.irpo,hq-rtr.au-team.irpo
 
-address=/br-rtr.au-team.irpo/"вставьте нужный ip"
+address=/br-rtr.au-team.irpo/192.168.4.1
 
-address=/hq-srv.au-team.irpo/"вставьте нужный ip"
-ptr-record="вставьте ip, указав числа в обратном порядке".in-addr.arpa,hq-srv.au-team.irpo
+address=/hq-srv.au-team.irpo/192.168.1.2
+ptr-record=2.1.168.192.in-addr.arpa,hq-srv.au-team.irpo
 
-address=/hq-cli.au-team.irpo/"вставьте нужный ip" (Смотрите адрес на HQ-CLI, т.к он выдаётся по DHCP)
-ptr-record="вставьте ip, указав числа в обратном порядке".in-addr.arpa,hq-cli.au-team.irpo
+address=/hq-cli.au-team.irpo/192.168.2.2
+ptr-record=2.2.168.192.in-addr.arpa,hq-cli.au-team.irpo
 
-address=/br-srv.au-team.irpo/"вставьте нужный ip"
+address=/br-srv.au-team.irpo/192.168.4.1
 ```
-5. В /etc/hosts добавить
+7) nano /etc/hosts добавить
 ```
-"вставьте нужный ip" hq-rtr.au-team.irpo
+192.168.1.1	hq-rtr.au-team.irpo
 ```
-6. systemctl restart dnsmasq
-7. Пингануть гугл и какую-нибудь машину по имени на других машинах
-8. Проверить cname
+8) systemctl restart dnsmasq
+9) Пингануть гугл и какую-нибудь машину по имени на других машинах
+10) Проверить cname
 ```
 dig moodle.au-team.irpo
 dig wiki.au-team.irpo
 ```
 
 # Шаг 11. Настройте часовой пояс на всех устройствах, согласно месту проведения экзамена
-На всех машинах поставить временную зону Европа/Москва
-```
-timedatectl set-timezone Europe/Moscow
-```
+1) timedatectl set-timezone Europe/Moscow
 Для проверки использовать timedatectl status
-
 # МОДУЛЬ ВТОРОЙ
 # Шаг 1. Настройте доменный контроллер Samba на машине BR-SRV:
 #### BR-SRV:
