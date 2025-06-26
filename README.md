@@ -29,8 +29,92 @@ auto eth2
 9) crontab -e
 10) @reboot /sbin/iptables-restore < /root/rules
 # Шаг 3. Создание локальных учетных записей
-
+HQ-SRV & BR-SRV:
+1) useradd sshuser -u 1010 (Идентификатор пользователя может отличатся, исходя из данных в файле)
+2) id sshuser
+3) passwd sshuser
+4) P@ssw0rd (Пароль может отличатся, исходя из данных в файле)
+5) mcedit /etc/sudoers
+```
+WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL
+```
+6) usermod -aG wheel sshuser
+7) id sshuser
+HQ-RTR & BR-RTR:
+1) useradd net_admin -m
+2) passwd net_admin
+3) P@$$word (Пароль может отличатся, исходя из данных в файле)
+4) mcedit /etc/sudoers
+```
+net_admin	ALL=(ALL:ALL) NOPASSWD: ALL
+```
 # Шаг 4. Настройте на интерфейсе HQ-RTR в сторону офиса HQ виртуальный коммутатор
+HQ-RTR:
+1) mcedit /etc/network/interfaces
+```
+auto eth0
+	iface eth0 inet static
+	address 172.16.4.2/28 (Маска и адрес могут отличаться, исходя из данных в файле)
+	gateway 172.16.4.1
+auto eth1
+	iface eth1 inet static
+	address 192.168.1.1/26 (Маска может отличаться, исходя из данных в файле)
+auto eth2
+	iface eth2 inet static
+	address 192.168.2.1/28 (Маска может отличаться, исходя из данных в файле)
+auto eth3
+	iface eth3 inet static
+	address 192.168.3.1/29 (Маска может отличаться, исходя из данных в файле)
+```
+2) systemctl restart networking
+3) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.1.0/26
+4) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.2.0/28
+5) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.3.0/29
+6) crontab -e
+```
+@reboot /sbin/iptables-restore < /root/rules
+```
+7) nano /etc/sysctl.conf
+8) net.ipv4.ip_forward=1
+9) sysctl –p
+HQ-SRV:
+1) mcedit /etc/net/ifaces/ens192/options
+```
+TYPE=eth
+DISABLED=no
+BOOTPROTO=static
+NM_CONTROLLED=no
+```
+2) mcedit /etc/net/ifaces/ens192/ipv4address
+```
+192.168.1.2/26
+```
+3) mcedit /etc/net/ifaces/ens192/ipv4route
+```
+default via 192.168.1.1
+```
+4) systemctl restart network
+HQ-CLI:
+mcedit /etc/net/ifaces/ens192/options
+```
+TYPE=eth
+DISABLED=no
+BOOTPROTO=dhcp
+NM_CONTROLLED=no
+```
+systemctl restart network
+```
+Только HQ-RTR:
+1) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.1.0/26
+2) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.2.0/28
+3) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.3.0/29
+4) crontab -e
+```
+@reboot /sbin/iptables-restore < /root/rules
+```
+5) nano /etc/sysctl.conf
+6) net.ipv4.ip_forward=1
+7) sysctl –p
 
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 
