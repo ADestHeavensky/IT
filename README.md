@@ -99,7 +99,7 @@ NM_CONTROLLED=no
 ```
 2) mcedit /etc/net/ifaces/ens192/ipv4address
 ```
-192.168.1.2/26
+192.168.1.2/26 (Маска может отличаться, исходя из данных в файле)
 ```
 3) mcedit /etc/net/ifaces/ens192/ipv4route
 ```
@@ -114,20 +114,7 @@ DISABLED=no
 BOOTPROTO=dhcp
 NM_CONTROLLED=no
 ```
-systemctl restart network
-```
-Только HQ-RTR:
-1) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.1.0/26
-2) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.2.0/28
-3) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.3.0/29
-4) crontab -e
-```
-@reboot /sbin/iptables-restore < /root/rules
-```
-5) nano /etc/sysctl.conf
-6) net.ipv4.ip_forward=1
-7) sysctl –p
-
+5)systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 
 # Шаг 6. Между офисами HQ и BR необходимо сконфигурировать ip туннель
