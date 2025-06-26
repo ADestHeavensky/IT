@@ -539,10 +539,12 @@ apt-get update
 apt-get install ansible
 ```
 2. В /etc/ansible/hosts прописать (использовать внутренние ipшки и порты указанные при настройке ssh в 1 модуле):
+```
 hq-srv ansible_host=sshuser@ip ansible_port=порт
 hq-cli ansible_host=sshuser@ip ansible_port=порт
 hq-rtr ansible_host=net_admin@ip ansible_port=порт
 br-rtr ansible_host=net_admin@ip ansible_port=порт
+```
 3. В /etc/ansible/ansible.cfg добавить под строку [defaults]
 ```
 ansible_python_interpreter=/usr/bin/python3
