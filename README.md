@@ -227,8 +227,11 @@ net.ipv4.ip_forward=1
 <hr>
 
 **iptables -t nat -A POSTROUTING -s 192.168.4.0/27 -o eth0 -j MASQUERADE**
+
 **iptables -t nat -L**
+
 **iptables-save > /root/rules**
+
 **crontab -e**
 ```
 @reboot /sbin/iptables-restore < /root/rules
