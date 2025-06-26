@@ -425,10 +425,15 @@ address=/br-srv.au-team.irpo/192.168.4.2
 **systemctl restart dnsmasq**
 
 **useradd sshuser -u 1010**
+
 **passwd sshuser**
+
 **P@ssw0rd**(вводим пароль)
+
 **P@ssw0rd**
+
 **chmod 777 /etc/sudoers**
+
 **mcedit /etc/sudoers** (убрать # в строке)
 ```
 WHEEL_USERS ALL=(ALL:ALL) NOPASSWD: ALL
@@ -452,11 +457,14 @@ Authorized access only
 ```
 
 **systemctl enable --now sshd**
+
 **systemctl restart sshd**
-*ssh sshuser@192.168.1.2 -p 2024*
+
+**ssh sshuser@192.168.1.2 -p 2024**
 
 #### HQ-CLI:
 **cd /etc/net/ifaces/ens192**
+
 **vim options**
 ```
 TYPE=eth
@@ -473,10 +481,12 @@ NM_CONTROLLED=no
 #### BR-SRV:
 Установка Samba
 **apt-get remove bind**
+
 **cd /etc/resolv.conf**
 nameserver 8.8.8.8
 
 **apt-get update**
+
 **apt-get install task-samba-dc**
 
 **cd /etc/resolv.conf**
