@@ -293,89 +293,74 @@ traceroute 192.168.4.2
 do show ip ospf neighbor
 ```
 # Шаг 8. Настройка динамической трансляции адресов
+### HQ-RTR:
+mcedit /etc/resolv.conf
+nameserver 8.8.8.8
+apt update
+apt install dnsmasq
+
+mcedit /etc/dnsmasq.conf
+```
+no-resolv
+dhcp-range=192.168.2.2,192.168.2.14,9999h
+dhcp-option=3,192.168.2.1
+dhcp-option=6,192.168.1.2
+interface=eth2 #Выбираем адаптер, у которого есть соединение с HQ-CLI
+```
+systemctl restart dnsmasq
+systemctl status dnsmasq
+
+Проверим работу службы на HQ-CLI, перезапускаем службу network на нём и посмотрим, выдался ли нам адрес:
+systemctl restart network
+ip a
 
 # Шаг 9. Настройка протокола динамической конфигурации хостов
+systemctl disable --now bind
 
-### HQ-RTR:
-mcedit /etc/apt/sources.list
-Комментируем первую строку
-Ниже пишем deb [trusted=yes] http://deb.debian.org/debian buster main
+### HQ-SRV:
 mcedit /etc/resolv.conf
 nameserver 8.8.8.8
 
-apt update
-apt install frr
+apt-get update
+apt-get install dnsmasq 
+systemctl enable --now dnsmasq 
 
-mcedit /etc/frr/daemons
+mcedit /etc/dnsmasq.conf
 ```
-ospfd=yes
-```
-systemctl restart frr
-<hr>
+no-resolv (не будет использовать /etc/resolv.conf)
+domain=au-team.irpo
+server=8.8.8.8 (адрес общедоступного DNS-сервера)
+interface=* (на каком интерфейсе будет работать служба)
 
-**Настройка vtysh**
-```
-vtysh (зайти в режим настройки)
-conf t (режим конфигурации, ВСПОМИНАЕМ ЦИСКО, РЕБЯТКИ!)
-router ospf
-network 10.10.10.0/30 area 0
-network 192.168.1.0/26 area 0
-network 192.168.2.0/28 area 0
-network 192.168.3.0/29 area 0
-do wr mem
-```
-Теперь настроим парольную защиту на нашем GRE туннеле через frr:
-```
-vtysh
-conf t
-int gre1
-ip ospf authentication message-digest
-ip ospf message-digest-key 1 md5 P@ssw0rd
-do wr mem
-```
-<hr>
+address=/hq-rtr.au-team.irpo/192.168.1.1
+ptr-record=1.1.168.192.in-addr.arpa,hq-rtr.au-team.irpo
+cname=moodle.au-team.irpo,hq-rtr.au-team.irpo
+cname=wiki.au-team.irpo,hq-rtr.au-team.irpo
 
-### BR-RTR:
-Проделываем то же самое с репозиториями.
-mcedit /etc/apt/sources.list
-Комментируем первую строку 
-Ниже пишем deb [trusted=yes] http://deb.debian.org/debian buster main
-mcedit /etc/resolv.conf
-nameserver 8.8.8.8
+address=/br-rtr.au-team.irpo/192.168.4.1
 
-apt update
-apt install frr
+address=/hq-srv.au-team.irpo/192.168.1.2
+ptr-record=2.1.168.192.in-addr.arpa,hq-srv.au-team.irpo
 
-mcedit /etc/frr/daemons
-```
-ospfd=yes
-```
-systemctl restart frr
-<hr>
+address=/hq-cli.au-team.irpo/192.168.2.2 (Смотрите адрес на HQ-CLI, т.к он выдаётся по DHCP)
+ptr-record=2.2.168.192.in-addr.arpa,hq-cli.au-team.irpo
 
-**Настройка vtysh**
+address=/br-srv.au-team.irpo/192.168.4.2
 ```
-vtysh
-conf t 
-router ospf
-network 10.10.10.0/30 area 0
-network 192.168.4.0/27 area 0
-do wr mem
-```
+Теперь необходимо добавить строку 192.168.1.1 hq-rtr.au-team.irpo в файл /etc/hosts
+systemctl restart dnsmasq
+Проверим пинг сначала с HQ-SRV на google.com и hq-rtr.au-team.irpo:
+ping google.com
+ping hq-rtr.au-team.irpo
 
-Теперь настроим парольную защиту на нашем GRE туннеле через frr:
-```
-vtysh
-conf t
-int gre1
-ip ospf authentication message-digest
-ip ospf message-digest-key 1 md5 P@ssw0rd
-do wr mem
-```
-<hr>
 
-Для проверки можно воспользоваться do show ip ospf neighbor
-Сделаем трассировку от сервера HQ-SRV до BR-SRV - traceroute 192.168.4.2
+Теперь проверим пинг с HQ-CLI:
+ping google.com
+ping hq-rtr.au-team.irpo
+
+И проверим работу CNAME записей с HQ-CLI:
+dig moodle.au-team.irpo
+dig wiki.au-team.irpo
 
 # Шаг 10. Настройка DNS для офисов HQ и BR
 1. На hq-srv отключить несовместимую службу bind если она есть, командой
