@@ -29,6 +29,10 @@ auto eth2
 9) crontab -e
 10) @reboot /sbin/iptables-restore < /root/rules
 # Шаг 3. Создание локальных учетных записей
+
+**Все: hostnamectl set-hostname ... ; exec bash**
+![hostname](/img/hostname.png)
+
 HQ-SRV & BR-SRV:
 1) useradd sshuser -u 1010 (Идентификатор пользователя может отличатся, исходя из данных в файле)
 2) id sshuser
@@ -48,6 +52,14 @@ HQ-RTR & BR-RTR:
 ```
 net_admin	ALL=(ALL:ALL) NOPASSWD: ALL
 ```
+
+**Таблица масок**
+
+![mask](/img/mask.png)
+
+**Таблица адресации (как пример)**
+![address](/img/ip-address.png)
+
 # Шаг 4. Настройте на интерфейсе HQ-RTR в сторону офиса HQ виртуальный коммутатор
 HQ-RTR:
 1) mcedit /etc/network/interfaces
@@ -293,6 +305,87 @@ do show ip ospf neighbor
 # Шаг 8. Настройка динамической трансляции адресов
 
 # Шаг 9. Настройка протокола динамической конфигурации хостов
+
+### HQ-RTR:
+mcedit /etc/apt/sources.list
+Комментируем первую строку
+Ниже пишем deb [trusted=yes] http://deb.debian.org/debian buster main
+mcedit /etc/resolv.conf
+nameserver 8.8.8.8
+
+apt update
+apt install frr
+
+mcedit /etc/frr/daemons
+```
+ospfd=yes
+```
+systemctl restart frr
+<hr>
+
+**Настройка vtysh**
+```
+vtysh (зайти в режим настройки)
+conf t (режим конфигурации, ВСПОМИНАЕМ ЦИСКО, РЕБЯТКИ!)
+router ospf
+network 10.10.10.0/30 area 0
+network 192.168.1.0/26 area 0
+network 192.168.2.0/28 area 0
+network 192.168.3.0/29 area 0
+do wr mem
+```
+Теперь настроим парольную защиту на нашем GRE туннеле через frr:
+```
+vtysh
+conf t
+int gre1
+ip ospf authentication message-digest
+ip ospf message-digest-key 1 md5 P@ssw0rd
+do wr mem
+```
+<hr>
+
+### BR-RTR:
+Проделываем то же самое с репозиториями.
+mcedit /etc/apt/sources.list
+Комментируем первую строку 
+Ниже пишем deb [trusted=yes] http://deb.debian.org/debian buster main
+mcedit /etc/resolv.conf
+nameserver 8.8.8.8
+
+apt update
+apt install frr
+
+mcedit /etc/frr/daemons
+```
+ospfd=yes
+```
+systemctl restart frr
+<hr>
+
+**Настройка vtysh**
+```
+vtysh
+conf t 
+router ospf
+network 10.10.10.0/30 area 0
+network 192.168.4.0/27 area 0
+do wr mem
+```
+
+Теперь настроим парольную защиту на нашем GRE туннеле через frr:
+```
+vtysh
+conf t
+int gre1
+ip ospf authentication message-digest
+ip ospf message-digest-key 1 md5 P@ssw0rd
+do wr mem
+```
+<hr>
+
+Для проверки можно воспользоваться do show ip ospf neighbor
+Сделаем трассировку от сервера HQ-SRV до BR-SRV - traceroute 192.168.4.2
 
 # Шаг 10. Настройка DNS для офисов HQ и BR
 1. На hq-srv отключить несовместимую службу bind если она есть, командой
