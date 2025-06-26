@@ -58,10 +58,6 @@ HQ-RTR & BR-RTR:
 ```
 net_admin	ALL=(ALL:ALL) NOPASSWD: ALL
 ```
-
-
-
-
 # Шаг 4. Настройте на интерфейсе HQ-RTR в сторону офиса HQ виртуальный коммутатор
 HQ-RTR:
 1) mcedit /etc/network/interfaces
@@ -84,7 +80,8 @@ auto eth3
 3) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.1.0/26
 4) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.2.0/28
 5) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.3.0/29
-6) crontab -e
+6) iptables-save > /root/rules
+7) crontab -e
 ```
 @reboot /sbin/iptables-restore < /root/rules
 ```
@@ -119,6 +116,43 @@ BOOTPROTO=dhcp
 NM_CONTROLLED=no
 ```
 2) systemctl restart network
+# Шаг 4.1. Настройка сетки BR
+BR-RTR:
+1) mcedit /etc/network/interfaces
+```
+auto eth0
+  iface eth0 inet static
+  address 172.16.5.2/28
+  gateway 172.16.5.1
+auto eth1
+  iface eth1 inet static
+  address 192.168.4.1/26
+```
+2) nano /etc/sysctl.conf
+3) net.ipv4.ip_forward=1
+4) sysctl -p
+5) iptables -t nat -A POSTROUTING -j MASQUERADE -o eth0 -s 192.168.4.0/27 (Маска может отличаться, исходя из данных в файле)
+6) iptables-save > /root/rules
+7) crontab -e
+8) @reboot /sbin/iptables-restore < /root/rules
+
+BR-SRV:
+1) mcedit /etc/net/ifaces/ens192/options
+```
+TYPE=eth
+DISABLED=no
+BOOTPROTO=static
+NM_CONTROLLED=no
+```
+2) mcedit /etc/net/ifaces/ens192/ipv4address
+```
+192.168.4.2/27 (Маска может отличаться, исходя из данных в файле)
+```
+3) mcedit /etc/net/ifaces/ens192/ipv4route
+```
+default via 192.168.4.1
+```
+4) systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 #### HQ-SRV:
 Ставим **раздатчик**
