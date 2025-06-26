@@ -404,6 +404,126 @@ timedatectl set-timezone Europe/Moscow
 Для проверки использовать timedatectl status
 
 # МОДУЛЬ ВТОРОЙ
+# Шаг 1. Настройте доменный контроллер Samba на машине BR-SRV:
+#### BR-SRV:
+**apt-get remove bind**
+
+**cd /etc/resolv.conf**
+nameserver 8.8.8.8
+
+**apt-get update**
+
+**apt-get install task-samba-dc**
+
+**cd /etc/resolv.conf**
+nameserver 192.168.1.2
+
+**rm -rf /etc/samba/smb.conf**
+
+**nano /etc/hosts**
+192.168.4.2 br-srv.au-team.irpo
+
+**nano /etc/dnsmasq**
+server=/au-team.irpo/192.168.4.2
+**systemctl restart dnsmasq**
+
+**samba-tool domain provision**
+AU-TEAM.IRPO
+AU-TEAM
+dc
+SAMBA_INTERNAL
+192.168.1.2 (Здесь вводим значение вручную)
+123qweR%
+
+**mv -f /var/lib/samba/private/krb5.conf /etc/krb5.conf**
+**systemctl enable samba**
+**сrontab -e**
+@reboot /bin/systemctl restart network
+@reboot /bin/systemctl restart samba
+**reboot**
+**samba-tool domain info 127.0.0.1**
+
+**Теперь создадим 5 пользователей**
+**samba-tool user add user1.hq 123qweR%(с user1.hq до user5.hq)**
+
+Теперь создадим группу и поместим туда созданных пользователей:
+**samba-tool group add hq**
+**samba-tool group addmembers hq user1.hq,user2.hq,user3.hq,user4.hq,user5.hq**
+
+**apt-repo add rpm http://altrepo.ru/local-p10 noarch local-p10**
+**apt-get update**
+**apt-get install sudo-samba-schema**
+**sudo-schema-apply**
+
+Нажимаем yes и вводим Administrator, пароль 123qweR%
+
+create-sudo-rule
+Имя правила	: prava_hq
+sudoCommand	: /bin/cat
+sudoUser	: %hq
+
+##### HQ-CLI:
+Заходим в меню, центр управления системой, пользователи, аутентификация:
+Домен: AU-TEAM.IRPO
+Рабочая группа: AU-TEAM
+Имя компьютера: hq-cli
+
+Вводим пользователя Administrator, пароль 123qweR%
+
+Перезагружаем машину
+
+**sudo su**
+**apt-get update**
+**apt-get install admc**
+**kinit administrator**
+Пароль: 123qweR%
+**admc**
+
+В новом окне нажимаем настройки, дополнительные возможности, атрибуты:
+sudoOption, пишем !authenticate;
+sudoCommand (grep, id), добавляем строго по одному правилу (/bin/grep, потом добавляем новый атрибут - /usr/bin/id)
+
+**apt-get update**
+**apt-get install sudo libsss_sudo**
+**control sudo public**
+
+**mcedit /etc/sssd/sssd.conf**
+services = nss, pam, sudo
+sudo_provider = ad
+
+**mcedit /etc/nsswitch.conf**
+sudoers: files sss
+
+**reboot**
+
+**rm -rf /var/lib/sss/db/***
+**sss_cache -E**
+**systemctl restart sssd**
+
+В НОВОМ ОКНЕ (Ctrl+Alt+F2) sudo -l -U user1.hq
+**sudo cat /etc/passwd | sudo grep root && sudo id root**
+
+
+#### BR-SRV:
+Приступаем к следующему этапу – импортируем пользователей из таблицы Users.csv. Файл будет доступен в директории /opt
+**mcedit import**
+
+```
+#!/bin/bash
+csv_file=”/opt/Users.csv”
+while IFS=”;” read -r firstName lastName role phone ou street zip city country password; do
+if [ “$firstName” == “First Name” ]; then
+		continue
+fi
+username=”${firstName,,}.${lastName,,}”
+sudo samba-tool user add “$username” 123qweR%
+done < “$csv_file”
+```
+
+**chmod +x /root/import**
+**bash /root/import**
+Импорт пользователей выполнен.
+
 # Шаг 3. Настройка службы сетевого времени на базе сервиса chrony
 1. Установить chrony на HQ-RTR
 ```
@@ -994,126 +1114,7 @@ NM_CONTROLLED=no
 
 ## Модуль 2
 
-#### BR-SRV:
-Установка Samba
-**apt-get remove bind**
 
-**cd /etc/resolv.conf**
-nameserver 8.8.8.8
-
-**apt-get update**
-
-**apt-get install task-samba-dc**
-
-**cd /etc/resolv.conf**
-nameserver 192.168.1.2
-
-**rm -rf /etc/samba/smb.conf**
-
-**nano /etc/hosts**
-192.168.4.2 br-srv.au-team.irpo
-
-**nano /etc/dnsmasq**
-server=/au-team.irpo/192.168.4.2
-**systemctl restart dnsmasq**
-
-**samba-tool domain provision**
-AU-TEAM.IRPO
-AU-TEAM
-dc
-SAMBA_INTERNAL
-192.168.1.2 (Здесь вводим значение вручную)
-123qweR%
-
-**mv -f /var/lib/samba/private/krb5.conf /etc/krb5.conf**
-**systemctl enable samba**
-**сrontab -e**
-@reboot /bin/systemctl restart network
-@reboot /bin/systemctl restart samba
-**reboot**
-**samba-tool domain info 127.0.0.1**
-
-**Теперь создадим 5 пользователей**
-**samba-tool user add user1.hq 123qweR%(с user1.hq до user5.hq)**
-
-Теперь создадим группу и поместим туда созданных пользователей:
-**samba-tool group add hq**
-**samba-tool group addmembers hq user1.hq,user2.hq,user3.hq,user4.hq,user5.hq**
-
-**apt-repo add rpm http://altrepo.ru/local-p10 noarch local-p10**
-**apt-get update**
-**apt-get install sudo-samba-schema**
-**sudo-schema-apply**
-
-Нажимаем yes и вводим Administrator, пароль 123qweR%
-
-create-sudo-rule
-Имя правила	: prava_hq
-sudoCommand	: /bin/cat
-sudoUser	: %hq
-
-
-
-##### HQ-CLI:
-Заходим в меню, центр управления системой, пользователи, аутентификация:
-Домен: AU-TEAM.IRPO
-Рабочая группа: AU-TEAM
-Имя компьютера: hq-cli
-
-Вводим пользователя Administrator, пароль 123qweR%
-
-Перезагружаем машину
-
-**sudo su**
-**apt-get update**
-**apt-get install admc**
-**kinit administrator**
-Пароль: 123qweR%
-**admc**
-
-В новом окне нажимаем настройки, дополнительные возможности, атрибуты:
-sudoOption, пишем !authenticate;
-sudoCommand (grep, id), добавляем строго по одному правилу (/bin/grep, потом добавляем новый атрибут - /usr/bin/id)
-
-**apt-get update**
-**apt-get install sudo libsss_sudo**
-**control sudo public**
-
-**mcedit /etc/sssd/sssd.conf**
-services = nss, pam, sudo
-sudo_provider = ad
-
-**mcedit /etc/nsswitch.conf**
-sudoers: files sss
-
-**reboot**
-
-**rm -rf /var/lib/sss/db/***
-**sss_cache -E**
-**systemctl restart sssd**
-
-В НОВОМ ОКНЕ (Ctrl+Alt+F2) sudo -l -U user1.hq
-**sudo cat /etc/passwd | sudo grep root && sudo id root**
-
-
-#### BR-SRV:
-Приступаем к следующему этапу – импортируем пользователей из таблицы Users.csv. Файл будет доступен в директории /opt
-**mcedit import**
-
-```
-#!/bin/bash
-csv_file=”/opt/Users.csv”
-while IFS=”;” read -r firstName lastName role phone ou street zip city country password; do
-if [ “$firstName” == “First Name” ]; then
-		continue
-fi
-username=”${firstName,,}.${lastName,,}”
-sudo samba-tool user add “$username” 123qweR%
-done < “$csv_file”
-```
-
-**chmod +x /root/import**
-**bash /root/import**
 
 
 
