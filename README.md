@@ -59,8 +59,11 @@ net.ipv4.ip_forward=1
 <hr>
 
 **iptables -t nat -A POSTROUTING –s 172.16.4.0/28 –o eth0 -j MASQUERADE** (Правило для доступа в интернет для устройств сети HQ)
+
 **iptables -t nat -A POSTROUTING –s 172.16.5.0/28 –o eth0 -j MASQUERADE** (Правило для доступа в интернет для устройств сети BR)
+
 **iptables -t nat -L** (Вывод прописанных правил для **nat**)
+
 **iptables-save > /root/rules**
 
 **crontab -e**
@@ -69,6 +72,7 @@ net.ipv4.ip_forward=1
 (Не забываем про Enter)
 ```
 **reboot**
+
 **iptables –t nat -L**
 
 #### HQ-RTR:
@@ -76,6 +80,7 @@ net.ipv4.ip_forward=1
 <hr>
 
 **IP-адресация на всех машинах может отличаться, пишем те адреса, которые написаны по заданию**
+
 **nano /etc/network/interfaces**
 ```
 auto eht0
@@ -101,6 +106,7 @@ auto gre1
 	ttl 255
 ```
 **systemctl restart networking**
+
 **ip a**
 
 **nano /etc/sysctl.conf**
@@ -113,9 +119,13 @@ net.ipv4.ip_forward=1
 <hr>
 
 **iptables** **-t nat -A POSTROUTING -s 192.168.1.0/26 -o eth0 -j MASQUERADE**
+
 **iptables -t nat -A POSTROUTING -s 192.168.2.0/28 -o eth0 -j MASQUERADE**
+
 **iptables -t nat -A POSTROUTING -s 192.168.3.0/29 -o eth0 -j MASQUERADE**
+
 **iptables -t nat -L**
+
 **iptables-save > /root/rules**
 
 **crontab -e**
@@ -124,9 +134,11 @@ net.ipv4.ip_forward=1
 (Не забываем про Enter)
 ```
 **reboot**
+
 **iptables –t nat -L**
 
 **ping 10.10.10.2**
+
 **nano /etc/apt/sources.list**
 ```
 #Верхний репозиторий
@@ -188,8 +200,8 @@ net_admin  ALL=(ALL:ALL) NOPASSWD: ALL
 #### BR-RTR:
 **nano /etc/network/interfaces**
 ```
-auto eht0
-	iface eth1 inet static
+auto eth0
+	iface eth0 inet static
 	address 172.16.5.2/28
 auto eth1
 	iface eth1 inet static
