@@ -516,6 +516,65 @@ done < “$csv_file”
 **bash /root/import**
 Импорт пользователей выполнен.
 
+# Шаг 2. Конфигурация файлового хранилища на HQ-SRV
+1. Создать 3 диска по 1 ГБ в настройках hq-srv
+2. Проверить список дисков командой lsblk (Должны появится sdb, sdc, sdd)
+3. mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/sd[b-d]
+4. cat /proc/mdstat
+5. mdadm --detail -scan --verbose > /etc/mdadm.conf
+6. fdisk /dev/md0. Далее вводим команду n и нажимаем на все Enter. Потом вводим команду w
+7. Создадим файловую систему: mkfs.ext4 /dev/md0p1
+8. В /etc/fstab добавим
+```
+/dev/md0p1	/raid5		ext4	defaults	0	0
+```
+9. Затем создаём каталог /raid5 и монтируем ФС из /etc/fstab
+```
+mkdir /raid5
+mount -a
+```
+10. Обновляем список пакетов и устанавливаем службу nfs-server
+```
+apt-get update
+apt-get install nfs-server
+```
+11. Создадим каталог, назначим нового владельца и группу ему и выдадим новые права
+```
+mkdir /raid5/nfs
+chown 99:99 /raid5/nfs
+chmod 777 /raid5/nfs
+```
+12. В /etc/exports добавим
+```
+/raid5/nfs 192.168.2.0/28(rw,sync,no_subtree_check)
+```
+13. Применяем изменения и включаем и перезапускаем службу NFS
+```
+exportfs -a
+exportfs -v
+systemctl enable nfs
+systemctl restart nfs
+```
+14. На hq-cli установим nfs-clients
+```
+apt-get update
+apt-get install nfs-clients
+```
+15. Создадим каталог mkdir -p /mnt/nfs
+16. В /etc/fstab добавим
+```
+192.168.1.2:/raid5/nfs	/mnt/nfs	nfs	intr,soft,_netdev,x-systemd.automount 0 0
+```
+17. Монтируем ФС из файла /etc/fstab и проверяем, что она появилась в списке
+```
+mount -a
+mount -v
+```
+18. Теперь проверим и создадим файл с клиентской машине в каталоге /mnt/nfs, затем посмотрим на сервере, создался ли он
+```
+touch /mnt/nfs/cock
+```
+
 # Шаг 3. Настройка службы сетевого времени на базе сервиса chrony
 1. Установить chrony на HQ-RTR
 ```
@@ -625,7 +684,7 @@ apt-get update
 apt-get install yandex-browser-stable
 ```
 Пуск → Интернет → Yandex Browser
-### THE END
+
 
 **Все: hostnamectl set-hostname ... ; exec bash**
 ![hostname](/img/hostname.png)
