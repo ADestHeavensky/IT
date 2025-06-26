@@ -144,9 +144,10 @@ Banner /root/banner
 **systemctl enable --now sshd**
 **systemctl restart sshd**
 
-**АБОЮДНО НА BR-SRV**
-#### HQ-CLI:
+#### Проверка HQ-CLI:
 **ssh sshuser@192.168.1.2 -p 2024**
+
+**АБОЮДНО НА BR-SRV**
 # Шаг 6. Между офисами HQ и BR необходимо сконфигурировать ip туннель
 #### HQ-RTR:
 Добавляем туннель
