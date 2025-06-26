@@ -435,6 +435,73 @@ timedatectl set-timezone Europe/Moscow
 
 # МОДУЛЬ ВТОРОЙ
 # Шаг 3. Настройка службы сетевого времени на базе сервиса chrony
+1. Установить chrony на HQ-RTR
+```
+apt update
+apt install chrony
+```
+2. Проверим работу службы chrony и timedatectl
+```
+systemctl status chrony
+timedatectl
+```
+3. Редактируем файл /etc/chrony/chrony.conf
+Добавить
+```
+local stratum 5
+allow "Подсеть hq-srv" (например 192.168.1.0/26)
+allow "Подсеть hq-cli"
+allow "Внешняя подсеть br-rtr" (например 172.16.5.0/28)
+allow "Подсеть br-srv"
+```
+Закомментировать строки
+```
+pool 2.debian.pool.ntp.org iburst
+rtcsync
+```
+4. Перезапускаем chrony и выключаем синхронизацию
+```
+systemctl enable --now chrony
+systemctl restart chrony
+timedatectl set-ntp 0
+timedatectl
+```
+5. На hq-cli выключим chronyd и установим systemd-timesyncd
+```
+systemctl disable --now chronyd
+systemctl status chronyd
+apt-get update
+apt-get install systemd-timesyncd
+```
+6. В /etc/systemd/timesyncd.conf изменим строку
+```
+NTP="внутренний ip hq-rtr" (например 192.168.1.1)
+```
+7. Включить systemd-timesyncd
+```
+systemctl enable --now systemd-timesyncd
+timedatectl timesync-status
+```
+Но есть одно НО! После перезагрузки клиентской машины HQ-CLI и вход в пользователя
+у вас может не появиться рабочий стол. Для этого мы заходим снова через Ctrl+Alt+F2
+во второе окно и прописываем команду startx. Это заставит запуститься графическую среду.
+8. Для BR-RTR удалим пакеты и установить systemd-timesyncd
+```
+apt purge ntp
+apt purge chrony
+apt update
+apt install systemd-timesyncd
+```
+В /etc/systemd/timesyncd.conf укажем
+```
+NTP="внешний ip hq-rtr" (например 172.16.4.2)
+```
+Включить systemd-timesyncd
+```
+systemctl enable --now systemd-timesyncd
+timedatectl timesync-status
+```
+9. Выполнить шаги 5-7 для hq-srv и br-srv. Для br-srv указать тот же NTP, что у br-rtr
 # Шаг 4. Сконфигурируйте ansible на сервере BR-SRV
 1. Обновить пакеты и установить ansible на br-srv
 ```
