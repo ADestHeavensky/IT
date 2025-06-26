@@ -106,6 +106,8 @@ NM_CONTROLLED=no
 default via 192.168.1.1
 ```
 4) systemctl restart network
+5) crontab -e
+6) @reboot /bin/systemctl restart network
 
 HQ-CLI:
 1) mcedit /etc/net/ifaces/ens192/options
@@ -116,6 +118,8 @@ BOOTPROTO=dhcp
 NM_CONTROLLED=no
 ```
 2) systemctl restart network
+3) crontab -e
+4) @reboot /bin/systemctl restart network
 # Шаг 4.1. Настройка сетки BR
 BR-RTR:
 1) mcedit /etc/network/interfaces
@@ -153,6 +157,8 @@ NM_CONTROLLED=no
 default via 192.168.4.1
 ```
 4) systemctl restart network
+5) crontab -e
+6) @reboot /bin/systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 #### HQ-SRV:
 Ставим **раздатчик**
