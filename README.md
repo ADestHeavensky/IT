@@ -109,15 +109,16 @@ NM_CONTROLLED=no
 default via 192.168.1.1
 ```
 4) systemctl restart network
+
 HQ-CLI:
-mcedit /etc/net/ifaces/ens192/options
+1) mcedit /etc/net/ifaces/ens192/options
 ```
 TYPE=eth
 DISABLED=no
 BOOTPROTO=dhcp
 NM_CONTROLLED=no
 ```
-5) systemctl restart network
+2) systemctl restart network
 # Шаг 5. Настройка безопасного удаленного доступа на серверах HQ-SRV и BR-SRV 
 #### HQ-SRV:
 Ставим **раздатчик**
