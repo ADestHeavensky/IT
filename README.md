@@ -18,8 +18,60 @@
 # Шаг 9. Настройка протокола динамической конфигурации хостов
 
 # Шаг 10. Настройка DNS для офисов HQ и BR
+1. На hq-srv отключить несовместимую службу bind если она есть, командой
+```
+systemctl disable --now bind
+```
+2. Отредачить /etc/resolv.conf
+```
+nameserver 8.8.8.8
+```
+3. Установить dnsmasq
+```
+apt-get update
+apt-get install dnsmasq
+systemctl enable --now dnsmasq
+```
+4. Изменить файл /etc/dnsmasq.conf
+```
+no-resolv
+domain=au-team.irpo
+server=8.8.8.8
+interface=*
+
+address=/hq-rtr.au-team.irpo/192.168.1.1
+ptr-record=1.1.168.192.in-addr.arpa,hq-rtr.au-team.irpo
+cname=moodle.au-team.irpo,hq-rtr.au-team.irpo
+cname=wiki.au-team.irpo,hq-rtr.au-team.irpo
+
+address=/br-rtr.au-team.irpo/192.168.4.1
+
+address=/hq-srv.au-team.irpo/192.168.1.2
+ptr-record=2.1.168.192.in-addr.arpa,hq-srv.au-team.irpo
+
+address=/hq-cli.au-team.irpo/192.168.2.2 (Смотрите адрес на HQ-CLI, т.к он выдаётся по DHCP)
+ptr-record=2.2.168.192.in-addr.arpa,hq-cli.au-team.irpo
+
+address=/br-srv.au-team.irpo/192.168.4.2
+```
+5. В /etc/hosts добавить
+```
+192.168.1.1 hq-rtr.au-team.irpo
+```
+6. systemctl restart dnsmasq
+7. Пингануть гугл и какую-нибудь машину по имени на других машинах
+8. Проверить cname
+```
+dig moodle.au-team.irpo
+dig wiki.au-team.irpo
+```
 
 # Шаг 11. Настройте часовой пояс на всех устройствах, согласно месту проведения экзамена
+На всех машинах поставить временную зону Европа/Москва
+```
+timedatectl set-timezone Europe/Moscow
+```
+Для проверки использовать timedatectl status
 
 # МОДУЛЬ ВТОРОЙ
 **Все: hostnamectl set-hostname ... ; exec bash**
