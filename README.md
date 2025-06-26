@@ -464,14 +464,20 @@ SAMBA_INTERNAL
 Нажимаем yes и вводим Administrator, пароль 123qweR%
 
 create-sudo-rule
+
 Имя правила	: prava_hq
+
 sudoCommand	: /bin/cat
+
 sudoUser	: %hq
 
 ##### HQ-CLI:
 Заходим в меню, центр управления системой, пользователи, аутентификация:
+
 Домен: AU-TEAM.IRPO
+
 Рабочая группа: AU-TEAM
+
 Имя компьютера: hq-cli
 
 Вводим пользователя Administrator, пароль 123qweR%
@@ -479,14 +485,21 @@ sudoUser	: %hq
 Перезагружаем машину
 
 **sudo su**
+
 **apt-get update**
+
 **apt-get install admc**
+
 **kinit administrator**
+
 Пароль: 123qweR%
+
 **admc**
 
 В новом окне нажимаем настройки, дополнительные возможности, атрибуты:
+
 sudoOption, пишем !authenticate;
+
 sudoCommand (grep, id), добавляем строго по одному правилу (/bin/grep, потом добавляем новый атрибут - /usr/bin/id)
 
 **apt-get update**
@@ -503,15 +516,19 @@ sudoers: files sss
 **reboot**
 
 **rm -rf /var/lib/sss/db/***
+
 **sss_cache -E**
+
 **systemctl restart sssd**
 
 В НОВОМ ОКНЕ (Ctrl+Alt+F2) sudo -l -U user1.hq
+
 **sudo cat /etc/passwd | sudo grep root && sudo id root**
 
 
 #### BR-SRV:
 Приступаем к следующему этапу – импортируем пользователей из таблицы Users.csv. Файл будет доступен в директории /opt
+
 **mcedit import**
 
 ```
@@ -527,7 +544,9 @@ done < “$csv_file”
 ```
 
 **chmod +x /root/import**
+
 **bash /root/import**
+
 Импорт пользователей выполнен.
 
 # Шаг 2. Конфигурация файлового хранилища на HQ-SRV
