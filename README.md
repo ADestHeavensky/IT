@@ -229,13 +229,12 @@ deb [trusted=yes] http://deb.debian.org/debian buster main
 nameserver 8.8.8.8
 ```
 3) apt update && apt install frr
-4) systemctl restart frr
-5) nano /etc/frr/daemons
+4) nano /etc/frr/daemons
 ```
 ospfd=yes
 ```
-6) systemctl restart frr
-7) vtysh
+5) systemctl restart frr
+6) vtysh
 ```
 conf t
 
@@ -266,7 +265,7 @@ ip ospf message-digest-key 1 md5 P@ssw0rd
 do wr mem
 ```
 
-8) nano /etc/apt/sources.list
+7) nano /etc/apt/sources.list
 ```
 deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
 # deb [trusted=yes] http://deb.debian.org/debian buster main
@@ -320,7 +319,12 @@ do wr mem
 deb https://dl.astralinux.ru/astra/stable/2.12_x86-64/repository/ orel main contrib non-free
 # deb [trusted=yes] http://deb.debian.org/debian buster main
 ```
+Проверка с HQ-SRV
+
 9) traceroute 192.168.4.2
+
+Если нету туннеля на HQ-RTR или BR-RTR проверяем:
+
 10) do show ip ospf neighbor
 # Шаг 8. Настройка динамической трансляции адресов
 ШАГ СКИПАЕМ, НАСТРОЙКА БЫЛА ВЫШЕ (IPTABLES)
