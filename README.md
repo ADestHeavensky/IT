@@ -321,6 +321,11 @@ traceroute 192.168.4.2
 do show ip ospf neighbor
 ```
 # Шаг 8. Настройка динамической трансляции адресов
+ШАГ СКИПАЕМ, НАСТРОЙКА БЫЛА ВЫШЕ (IPTABLES)
+
+(┬┬﹏┬┬)
+
+# Шаг 9. Настройка протокола динамической конфигурации хостов
 ### HQ-RTR:
 mcedit /etc/resolv.conf
 nameserver 8.8.8.8
@@ -341,54 +346,6 @@ systemctl status dnsmasq
 Проверим работу службы на HQ-CLI, перезапускаем службу network на нём и посмотрим, выдался ли нам адрес:
 systemctl restart network
 ip a
-
-# Шаг 9. Настройка протокола динамической конфигурации хостов
-systemctl disable --now bind
-
-### HQ-SRV:
-mcedit /etc/resolv.conf
-nameserver 8.8.8.8
-
-apt-get update
-apt-get install dnsmasq 
-systemctl enable --now dnsmasq 
-
-mcedit /etc/dnsmasq.conf
-```
-no-resolv (не будет использовать /etc/resolv.conf)
-domain=au-team.irpo
-server=8.8.8.8 (адрес общедоступного DNS-сервера)
-interface=* (на каком интерфейсе будет работать служба)
-
-address=/hq-rtr.au-team.irpo/192.168.1.1
-ptr-record=1.1.168.192.in-addr.arpa,hq-rtr.au-team.irpo
-cname=moodle.au-team.irpo,hq-rtr.au-team.irpo
-cname=wiki.au-team.irpo,hq-rtr.au-team.irpo
-
-address=/br-rtr.au-team.irpo/192.168.4.1
-
-address=/hq-srv.au-team.irpo/192.168.1.2
-ptr-record=2.1.168.192.in-addr.arpa,hq-srv.au-team.irpo
-
-address=/hq-cli.au-team.irpo/192.168.2.2 (Смотрите адрес на HQ-CLI, т.к он выдаётся по DHCP)
-ptr-record=2.2.168.192.in-addr.arpa,hq-cli.au-team.irpo
-
-address=/br-srv.au-team.irpo/192.168.4.2
-```
-Теперь необходимо добавить строку 192.168.1.1 hq-rtr.au-team.irpo в файл /etc/hosts
-systemctl restart dnsmasq
-Проверим пинг сначала с HQ-SRV на google.com и hq-rtr.au-team.irpo:
-ping google.com
-ping hq-rtr.au-team.irpo
-
-
-Теперь проверим пинг с HQ-CLI:
-ping google.com
-ping hq-rtr.au-team.irpo
-
-И проверим работу CNAME записей с HQ-CLI:
-dig moodle.au-team.irpo
-dig wiki.au-team.irpo
 
 # Шаг 10. Настройка DNS для офисов HQ и BR
 1. На hq-srv отключить несовместимую службу bind если она есть, командой
