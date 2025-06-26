@@ -350,6 +350,7 @@ interface=eth2 #Выбираем адаптер, у которого есть с
 1) systemctl restart network
 2) ip a
 # Шаг 10. Настройка DNS для офисов HQ и BR
+HQ-SRV:
 1) systemctl disable --now bind
 
 2) nano /etc/resolv.conf
